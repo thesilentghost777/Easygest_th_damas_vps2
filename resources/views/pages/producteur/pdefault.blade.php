@@ -1,0 +1,328 @@
+@extends('layouts.app')
+
+@section('content')
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Gest Dashboard</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Hide elements on initial load to prevent flash */
+        [x-cloak] {
+            display: none !important;
+        }
+        
+        /* Styles pour rendre la sidebar et le contenu indépendamment scrollables */
+        aside {
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+        }
+        
+        main {
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        /* Personnalisation de la scrollbar pour la sidebar */
+        aside::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        aside::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        aside::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        aside::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Personnalisation de la scrollbar pour le contenu */
+        main::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        main::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        main::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        
+        main::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Mobile specific styles */
+        @media (max-width: 1024px) {
+            /* Ensure sidebar is hidden by default on mobile */
+            aside:not(.lg\\:translate-x-0) {
+                transform: translateX(-100%);
+            }
+        }
+    </style>
+
+</head>
+<body class="bg-gray-100 font-sans">
+<div class="flex min-h-screen" x-data="{ sidebarOpen: false }" x-cloak>
+    <!-- Mobile Menu Button - Reduced to half size -->
+    <button
+        class="lg:hidden p-2 text-white bg-blue-600 fixed z-50 top-2 left-2 rounded-md shadow-md"
+        @click="sidebarOpen = !sidebarOpen"
+        aria-label="{{ $isFrench ? 'Ouvrir le menu' : 'Open menu' }}">
+        <i class="mdi mdi-menu text-lg"></i>
+    </button>
+
+    <!-- Sidebar - With proper mobile handling to prevent flash -->
+    <aside
+        x-show="sidebarOpen || window.innerWidth >= 1024"
+        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+        class="lg:translate-x-0 transform lg:w-72 w-64 bg-gradient-to-br from-blue-800 to-blue-600 text-white p-6 flex flex-col fixed lg:static inset-y-0 z-40 transition-transform duration-300 ease-in-out overflow-y-auto"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 transform -translate-x-full"
+        x-transition:enter-end="opacity-100 transform translate-x-0"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100 transform translate-x-0"
+        x-transition:leave-end="opacity-0 transform -translate-x-full">
+        
+        <div class="text-center border-b border-white/20 pb-6">
+            <h1 class="text-2xl font-bold">EASY GEST</h1>
+            <span class="text-xs">{{ $isFrench ? 'Propulsé par TFS237' : 'Powered by TFS237' }}</span>
+        </div>
+
+        <!-- Menu Sections -->
+        <div class="mt-6 space-y-8 overflow-y-auto">
+            <!-- Production Section -->
+            @if ($secteur == 'glace')
+            <div>
+                <h3 class="uppercase text-sm font-semibold opacity-70 mb-3">{{ $isFrench ? 'Production' : 'Production' }}</h3>
+               <ul class="space-y-2">
+               <li><a href="{{ route('producteur.workspace') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-food mr-2"></i>{{ $isFrench ? 'Produits du jour' : 'Daily Products' }}</a></li>
+               <li><a href="{{ route('producteur-commande') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-cart mr-2"></i>{{ $isFrench ? 'Commandes' : 'Orders' }}</a></li>
+               @feature('reserve_raw_materials')
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+               <a href="{{ route('producteur.reservations.create') }}">
+               <i class="mdi mdi-package-variant mr-2"></i>{{ $isFrench ? 'Réservation MP' : 'Raw Material Reservation' }}
+               </a>
+               </li>
+               @endfeature
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+               <a href="{{ route('assignations.mes-assignations') }}">
+               <i class="mdi mdi-clipboard-check mr-2"></i>{{ $isFrench ? 'Matières Assignées' : 'Assigned Materials' }}
+               </a>
+               </li>
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+               <a href="{{ route('recettes.index') }}" class="flex items-center">
+               <i class="mdi mdi-book-open-variant mr-2 text-lg"></i>
+               <span>{{ $isFrench ? 'Recettes des produits' : 'Product Recipes' }}</span>
+               </a>
+               </li>
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+                <a href="{{ route('ice.workspace') }}" class="flex items-center w-full">
+                  <i class="mdi mdi-swap-horizontal mr-2"></i>{{ $isFrench ? 'Changer de mode' : 'Change Mode' }}
+                </a>
+              </li>
+              @feature('personal_production_stats')
+              <li><a href="{{ route('producteur.sp') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-chart-bar mr-2"></i>{{ $isFrench ? 'Statistiques' : 'Statistics' }}</a></li>
+              @endfeature
+              
+              @feature('production_details')
+              <li><a href="{{ route('production.stats.details') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-eye mr-2"></i>{{ $isFrench ? 'Details des Productions' : 'Production Details' }}</a></li>
+              @endfeature
+              
+               </ul>
+               </div>
+		 <!-- General Section -->
+            @else
+            <div>
+                <h3 class="uppercase text-sm font-semibold opacity-70 mb-3">{{ $isFrench ? 'Production' : 'Production' }}</h3>
+               <ul class="space-y-2">
+               <li><a href="{{ route('producteur.workspace') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-food mr-2"></i>{{ $isFrench ? 'Produits du jour' : 'Daily Products' }}</a></li>
+               <li><a href="{{ route('producteur-commande') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-cart mr-2"></i>{{ $isFrench ? 'Commandes' : 'Orders' }}</a></li>
+               @feature('reserve_raw_materials')
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+               <a href="{{ route('producteur.reservations.create') }}">
+               <i class="mdi mdi-package-variant mr-2"></i>{{ $isFrench ? 'Réservation MP' : 'Raw Material Reservation' }}
+               </a>
+               </li>
+               @endfeature
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+               <a href="{{ route('assignations.mes-assignations') }}">
+               <i class="mdi mdi-clipboard-check mr-2"></i>{{ $isFrench ? 'Matières Assignées' : 'Assigned Materials' }}
+               </a>
+               </li>
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+               <a href="{{ route('recettes.index') }}" class="flex items-center">
+               <i class="mdi mdi-book-open-variant mr-2 text-lg"></i>
+               <span>{{ $isFrench ? 'Recettes des produits' : 'Product Recipes' }}</span>
+               </a>
+               </li>
+               @feature('complex_invoices')
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+               <a href="{{ route('factures-complexe.index') }}">
+               <i class="mdi mdi-file-document-outline mr-2"></i>{{ $isFrench ? 'Afficher les factures' : 'Show Invoices' }}
+               </a>
+               </li>
+               @endfeature
+               @feature('materials_recovery')
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+               <a href="{{ route('taules.inutilisees.index') }}">
+               <i class="mdi mdi-recycle mr-2"></i>{{ $isFrench ? 'Recuperation de Matieres' : 'Material Recovery' }}
+               </a>
+               </li>
+               @endfeature
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+                <a href="{{ route('matieres.retours.index') }}">
+               <i class="mdi mdi-package-variant-closed mr-2"></i>{{ $isFrench ? 'Retour de Matières' : 'Material Return' }}
+               </a>
+               </li>
+      <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+    <a href="{{ route('productions.mes-productions') }}" class="flex items-center">
+        <i class="mdi mdi-delete mr-2 text-lg"></i>
+        <span>{{ $isFrench ? 'Supprimer une production' : 'Delete a Production' }}</span>
+    </a>
+</li>
+               <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+                    <a href="{{ route('repartiteur.index') }}" class="flex items-center">
+                        <i class="mdi mdi-transit-connection-variant mr-2 text-lg"></i>
+                        <span>{{ $isFrench ? 'Le répartiteur' : 'The Distributor' }}</span>
+                    </a>
+                </li>
+                <li class="flex items-center p-2 rounded hover:bg-white/10 cursor-pointer">
+                    <a href="{{ route('boulangerie.production.index') }}" class="flex items-center">
+                        <i class="mdi mdi-bread-slice mr-2 text-lg"></i>
+                        <span>{{ $isFrench ? 'Production Boulangerie' : 'Bakery Production' }}</span>
+                    </a>
+                </li>
+
+
+               </ul>
+               </div>
+		 <!-- General Section -->
+            <div>
+                <h3 class="uppercase text-sm font-semibold opacity-70 mb-3">{{ $isFrench ? 'Général' : 'General' }}</h3>
+                <ul class="space-y-2">
+                    @feature('personal_production_stats')
+                    <li><a href="{{ route('producteur.sp') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-chart-bar mr-2"></i>{{ $isFrench ? 'Statistiques' : 'Statistics' }}</a></li>
+                    @endfeature
+                    
+                    @feature('production_details')
+                    <li><a href="{{ route('production.stats.details') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-eye mr-2"></i>{{ $isFrench ? 'Details des Productions' : 'Production Details' }}</a></li>
+                    @endfeature
+                    
+                    @feature('temp_missing_items')
+                    <li><a href="{{ route('manquant.view') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-alert-circle mr-2"></i>{{ $isFrench ? 'Manquants' : 'Missing Items' }}</a></li>
+                    @endfeature
+                    
+                    @feature('prime')
+                    <li><a href="{{ route('primes.index') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-gift mr-2"></i>{{ $isFrench ? 'Primes' : 'Bonuses' }}</a></li>
+                    @endfeature
+                    
+                    @feature('loans')
+                    <li>
+                        <a href="{{ route('loans.my-loans') }}" class="flex items-center p-2 rounded hover:bg-white/10">
+                            <i class="mdi mdi-cash-multiple mr-2"></i> {{ $isFrench ? 'Effectuer un prêt' : 'Make a Loan' }}
+                        </a>
+                    </li>
+                    @endfeature
+                    
+                    @feature('daily_rations')
+                    <a href="{{ route('rations.employee.claim') }}" class="flex items-center p-2 rounded hover:bg-white/10">
+                        <i class="mdi mdi-currency-usd mr-2 text-lg"></i>
+                        <span>{{ $isFrench ? 'Ration Journalière' : 'Daily Ration' }}</span>
+                    </a>
+                    @endfeature
+
+                    <li><a href="{{ route('horaire.index') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-clock-check mr-2"></i>{{ $isFrench ? 'Horaires' : 'Schedule' }}</a></li>
+                    <li>
+                        <a href="{{ route('repos-conges.employee') }}" class="flex items-center p-2 rounded hover:bg-white/10">
+                          <i class="mdi mdi-calendar-check mr-2"></i>{{ $isFrench ? 'Planning et jour de repos' : 'Planning and Rest Days' }}
+                        </a>
+                    </li>
+                    
+                    @feature('payslips_salary')
+                    <li><a href="{{ route('consulterfp') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-file-document-multiple mr-2"></i>{{ $isFrench ? 'Fiche de paie' : 'Payslip' }}</a></li>
+                    @endfeature
+                    
+                    @feature('producers_ranking')
+                    <li><a href="{{ route('producteur.comparaison') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-podium mr-2"></i>{{ $isFrench ? 'Classement' : 'Ranking' }}</a></li>
+                    @endfeature
+
+                </ul>
+            </div>
+
+            <!-- Communications Section -->
+            <div>
+                <h3 class="uppercase text-sm font-semibold opacity-70 mb-3">{{ $isFrench ? 'Communications' : 'Communications' }}</h3>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{{ route('extras.index2') }}" class="flex items-center p-2 rounded hover:bg-white/10">
+                            <i class="mdi mdi-gavel mr-2"></i> {{ $isFrench ? 'Réglementation' : 'Regulations' }}
+                        </a>
+                    </li>
+                    
+                    @feature('salary_advances')
+                    <li><a href="{{ route('reclamer-as') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-cash mr-2"></i>{{ $isFrench ? 'Reclamer Avance Salaire' : 'Request Salary Advance' }}</a></li>
+                    <li><a href="{{ route('validation-retrait') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-currency-usd mr-2"></i>{{ $isFrench ? 'Retirer Avance Salaire' : 'Withdraw Salary Advance' }}</a></li>
+                    @endfeature
+                    
+                    @feature('messages_suggestions')
+                    <li><a href="{{ route('message') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-message-text mr-2"></i>{{ $isFrench ? 'Messages privés et suggestions' : 'Private Messages and Suggestions' }}</a></li>
+                    <li><a href="{{ route('message') }}" class="flex items-center p-2 rounded hover:bg-white/10"><i class="mdi mdi-alert mr-2"></i>{{ $isFrench ? 'Signalements' : 'Reports' }}</a></li>
+                    <li>
+                        <a href="{{ route('announcements.index') }}" class="flex items-center px-3 py-3 text-base rounded-lg hover:bg-white/10 transition-colors">
+                            <i class="mdi mdi-bullhorn mr-3 text-xl"></i>
+                            {{ $isFrench ? 'Annonce' : 'Announcements' }}
+                        </a>
+                    </li>
+                    @endfeature
+                </ul>
+            </div> 
+            @endif
+        </div>
+
+        <!-- Profile Section -->
+        <div class="mt-auto border-t border-white/20 pt-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <i class="mdi mdi-account-circle text-xl"></i>
+                </div>
+                <div>
+                    <div class="font-medium">{{ $nom }}</div>
+                    <div class="text-sm opacity-70">{{ $secteur }}</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Overlay for mobile -->
+    <div x-show="sidebarOpen" 
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+         @click="sidebarOpen = false"></div>
+
+    <!-- Content Area -->
+    <main class="flex-1 p-6 lg:ml-3 overflow-y-auto">
+        @yield('page-content')
+    </main>
+</div>
+</body>
+@endsection

@@ -1,0 +1,98 @@
+on va faire un travail , je suis entrain de faire les test unitaires 
+
+laravel sur les services : je te donne un service et toi tu me donne 
+
+le script sh permettant de creer le test , remplir le fichier de test 
+
+et l'executer : le script sera creer dans le dossier de test/Unit/Services 
+
+:ne creer plus les factory car tous les factory ont deja ete creer : 
+
+soit concis et precis : n'effectue que les test les plus important : 
+
+et fais l'effort d'essayer tous les cas possible dans tes test de logique
+
+avec les donner :(tous les models , factories , ... 
+
+existe deja donc utilise les sans les recreer si tu en as besoins)
+
+si avant de commencer tu as besoin de la definition d'un model ou autre 
+
+demande moi : ne fais rien dans mon dos : n'utilise pas de champ que tu ne connais pas
+
+n'insere pas de donner de type que tu ne connais pas
+
+voici les info par defaut 
+
+Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique()->nullable();
+            $table->date('date_naissance')->nullable();
+            $table->integer('code_secret')->nullable();
+            $table->string('secteur', 50)->nullable();
+            $table->string('role', 50)->nullable();
+            $table->string('num_tel', 15)->nullable();
+            $table->year('annee_debut_service')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        Schema::create('Produit_fixes', function (Blueprint $table) {
+            $table->id('code_produit');  // Utilise id() qui crée un unsignedBigInteger AUTO_INCREMENT
+            $table->string('nom', 50);
+            $table->smallInteger('prix');
+            $table->string('categorie');
+            $table->timestamps();
+        });
+        Schema::create('Matiere', function (Blueprint $table) {
+            $table->id();
+            $table->string('nom');
+            $table->string('unite_minimale'); // Changé de enum à string
+            $table->string('unite_classique');
+            $table->decimal('quantite_par_unite', 10, 3);
+            $table->decimal('quantite', 10, 2);
+            $table->decimal('prix_unitaire', 10, 2);
+            $table->decimal('prix_par_unite_minimale', 10, 4);
+            $table->timestamps();
+        });
+        Schema::create('Utilisation', function (Blueprint $table) {
+        $table->id();
+        $table->string('id_lot', 20);
+        $table->index('id_lot');
+        $table->unsignedBigInteger('produit');  // Type correspond maintenant à code_produit
+        $table->unsignedBigInteger('matierep');
+        $table->unsignedBigInteger('producteur');
+        $table->decimal('quantite_produit', 10, 2);
+        $table->decimal('quantite_matiere', 10, 3);
+        $table->string('unite_matiere');
+        $table->timestamps();
+
+        $table->foreign('produit')->references('code_produit')->on('Produit_fixes');
+        $table->foreign('matierep')->references('id')->on('Matiere');
+        $table->foreign('producteur')->references('id')->on('users');
+    });
+
+    Schema::create('transaction_ventes', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('produit');
+            $table->unsignedBigInteger('serveur');
+            $table->Integer('quantite');
+            $table->Integer('prix');
+            $table->date('date_vente');
+            $table->string('type');
+            $table->string('monnaie')->nullable();
+            $table->timestamps();
+            $table->foreign('produit')->references('code_produit')->on('Produit_fixes')
+            ->onDelete('cascade');
+            $table->foreign('serveur')->references('id')->on('users')->onDelete('cascade');
+        });
+
+    voici une erreur courante que tu fais : Call to undefined method Tests\Unit\Services\Nom_du_service::assertStringContains()
+
+
+voici une autre erreur que tu fais : le model pour produit fixes est Produit_fixes et non ProduitFixe
+
+ne pas mocker les relltions :: n'utilise meme pas mocker : fait les choses bien

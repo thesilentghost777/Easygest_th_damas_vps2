@@ -1,0 +1,16 @@
+{
+    "name": "EASY GEST",
+    "short_name": "Easy Gest",
+    "start_url": "/",
+    "background_color": "#FFFFFF",
+    "description": "Believe in God's mercy..",
+    "display": "fullscreen",
+    "theme_color": "#FFFFFF",
+    "icons": [
+        {
+            "src": "logo2.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

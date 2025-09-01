@@ -1,0 +1,362 @@
+
+        Schema::create('produit_stocks', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('id_produit');
+            $table->foreign('id_produit')->references('code_produit')->on('Produit_fixes')->onDelete('cascade');
+            $table->integer('quantite_en_stock')->default(0);
+            $table->integer('quantite_invendu')->default(0);
+            $table->integer('quantite_avarie')->default(0);
+            $table->timestamps();
+ 
+            Schema::create('plannings', function (Blueprint $table) {
+            $table->id();
+            $table->string('libelle');
+            $table->unsignedBigInteger('employe');
+            $table->enum('type', ['tache', 'repos']);
+            $table->date('date');
+            $table->time('heure_debut')->nullable();
+            $table->time('heure_fin')->nullable();
+            $table->timestamps();
+
+            $table->foreign('employe')->references('id')->on('users')->onDelete('cascade');
+     
+
+        Schema::create('evaluations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->decimal('note', 4, 2);
+            $table->text('appreciation');
+            $table->timestamps();
+   
+
+        Schema::create('repos_conges', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('employe_id')->constrained('users')->onDelete('cascade');
+            $table->enum('jour', ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']);
+            $table->integer('conges')->nullable();
+            $table->date('debut_c')->nullable();
+            $table->enum('raison_c', ['maladie', 'evenement', 'accouchement', 'autre'])->nullable();
+            $table->text('autre_raison')->nullable();
+            $table->timestamps();
+
+            // Ensure one entry per employee
+            $table->unique('employe_id');
+   
+
+        Schema::create('Extra', function (Blueprint $table) {
+            $table->id();
+            $table->string('secteur', 50);
+            $table->time('heure_arriver_adequat');
+            $table->time('heure_depart_adequat');
+            $table->decimal('salaire_adequat', 10, 2);
+            $table->text('interdit')->nullable();
+            $table->text('regles')->nullable();
+            $table->integer('age_adequat');
+            $table->timestamps();
+   
+
+        Schema::create('delis', function (Blueprint $table) {
+            $table->id();
+            $table->string('nom');
+            $table->text('description');
+            $table->decimal('montant', 10, 2);
+            $table->timestamps();
+        });
+
+        Schema::create('deli_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('deli_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->date('date_incident');
+            $table->timestamps();
+   
+
+    Schema::create('categories', function (Blueprint $table) {
+        $table->id(); // Colonne 'id' (clé primaire auto-incrémentée)
+        $table->string('name'); // Colonne 'name' (nom de la catégorie) (sac,salaire,as,materiel,reparation,matiere_premiere,transport,supermarche,vente,autre)
+    });
+
+    Schema::create('transactions', function (Blueprint $table) {
+        $table->id(); // Colonne 'id' (clé primaire auto-incrémentée)
+        $table->enum('type', ['income', 'outcome']); // Colonne 'type' (ENUM pour 'income' ou 'outcome')
+        $table->unsignedBigInteger('category_id'); // Colonne 'category_id' (clé étrangère)
+        $table->decimal('amount', 10, 2); // Colonne 'amount' (DECIMAL avec 10 chiffres au total et 2 décimales)
+        $table->dateTime('date'); // Colonne 'date' (DATETIME)
+        $table->text('description')->nullable(); // Colonne 'description' (TEXT, facultative)
+        $table->timestamps(); // Colonnes 'created_at' et 'updated_at' (TIMESTAMP)
+        // Clé étrangère pour 'category_id' référençant la table 'categories'
+        $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+    });
+    
+    
+
+        Schema::create('stagiaires', function (Blueprint $table) {
+            $table->id();
+            $table->string('nom');
+            $table->string('prenom');
+            $table->string('email')->unique();
+            $table->string('telephone');
+            $table->string('ecole');
+            $table->string('niveau_etude');
+            $table->string('filiere');
+            $table->date('date_debut');
+            $table->date('date_fin');
+            $table->string('departement');
+            $table->text('nature_travail');
+            $table->decimal('remuneration', 10, 2)->default(0);
+            $table->text('appreciation')->nullable();
+            $table->enum('type_stage', ['academique', 'professionnel']);
+            $table->boolean('rapport_genere')->default(false);
+            $table->timestamps();
+   
+
+            
+        Schema::create('produits_recu_1', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('produit_id');
+            $table->foreign('produit_id')->references('code_produit')->on('Produit_fixes');
+            $table->integer('quantite');
+            $table->unsignedBigInteger('producteur_id');
+            $table->foreign('producteur_id')->references('id')->on('users');
+            $table->unsignedBigInteger('pointeur_id');
+            $table->foreign('pointeur_id')->references('id')->on('users');
+            $table->dateTime('date_reception');
+            $table->text('remarques')->nullable();
+            $table->timestamps();
+   
+
+
+        Schema::create('bag_assignments', function (Blueprint $table) {
+
+            $table->id();
+
+            $table->foreignId('bag_id')->constrained()->onDelete('cascade');
+
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+            $table->integer('quantity_assigned');
+
+            $table->text('notes')->nullable();
+
+            $table->timestamps();
+
+        });
+
+        Schema::create('bag_receptions', function (Blueprint $table) {
+
+            $table->id();
+
+            $table->foreignId('bag_assignment_id')->constrained()->onDelete('cascade');
+
+            $table->integer('quantity_received');
+
+            $table->text('notes')->nullable();
+
+            $table->timestamps();
+
+        });
+
+  
+
+        Schema::create('bag_sales', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('bag_reception_id')->constrained()->onDelete('cascade');
+            $table->integer('quantity_sold');
+            $table->integer('quantity_unsold');
+            $table->text('notes')->nullable();
+            $table->boolean('is_recovered')->default(false);
+            $table->timestamps();
+        });
+    }
+
+   
+
+        Schema::create('configurations', function (Blueprint $table) {
+            $table->id();
+            $table->boolean('first_config')->default(false);
+            $table->boolean('flag1')->default(false);
+            $table->boolean('flag2')->default(false);
+            $table->boolean('flag3')->default(false);
+            $table->boolean('flag4')->default(false);
+            $table->timestamps();
+        });
+
+      
+
+        Schema::create('solde_cp', function (Blueprint $table) {
+            $table->id();
+            $table->decimal('montant', 15, 2)->default(0);
+            $table->date('derniere_mise_a_jour');
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
+     
+
+        Schema::create('historique_solde_cp', function (Blueprint $table) {
+            $table->id();
+            $table->decimal('montant', 15, 2);
+            $table->enum('type_operation', ['versement', 'depense', 'ajustement']);
+            $table->unsignedBigInteger('operation_id')->nullable();
+            $table->decimal('solde_avant', 15, 2);
+            $table->decimal('solde_apres', 15, 2);
+            $table->unsignedBigInteger('user_id');
+            $table->text('description')->nullable();
+            $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
+  
+
+        Schema::create('manquant_temporaire', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('employe_id');
+            $table->foreign('employe_id')->references('id')->on('users')->onDelete('cascade');
+            $table->bigInteger('montant')->default(0);
+            $table->text('explication')->nullable();
+            $table->enum('statut', ['en_attente', 'ajuste', 'valide'])->default('en_attente');
+            $table->text('commentaire_dg')->nullable();
+            $table->unsignedBigInteger('valide_par')->nullable();
+            $table->foreign('valide_par')->references('id')->on('users')->onDelete('set null');
+            $table->timestamps();
+    
+
+        Schema::create('cashier_sessions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users');
+            $table->dateTime('start_time');
+            $table->dateTime('end_time')->nullable();
+            $table->decimal('initial_cash', 12, 2);
+            $table->decimal('initial_change', 12, 2);
+            $table->decimal('initial_mobile_balance', 12, 2);
+            $table->decimal('final_cash', 12, 2)->nullable();
+            $table->decimal('final_change', 12, 2)->nullable();
+            $table->decimal('final_mobile_balance', 12, 2)->nullable();
+            $table->decimal('cash_remitted', 12, 2)->nullable();
+            $table->decimal('total_withdrawals', 12, 2)->default(0);
+            $table->decimal('discrepancy', 12, 2)->nullable();
+            $table->text('notes')->nullable();
+            $table->text('end_notes')->nullable();
+            $table->timestamps();
+        });
+  
+        Schema::create('cash_withdrawals', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('cashier_session_id')->constrained('cashier_sessions')->onDelete('cascade');
+            $table->decimal('amount', 12, 2);
+            $table->string('reason');
+            $table->string('withdrawn_by');
+            $table->dateTime('created_at');
+        });
+   
+
+        Schema::create('produits', function (Blueprint $table) {
+            $table->id();
+            $table->string('nom');
+            $table->string('reference')->unique();
+            $table->enum('type', ['magasin', 'boisson']);
+            $table->integer('quantite')->default(0);
+            $table->decimal('prix_unitaire', 10, 2);
+            $table->integer('seuil_alerte')->default(5);
+            $table->timestamps();
+        });
+    }
+
+
+        Schema::create('mouvements_stock', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('produit_id')->constrained('produits')->onDelete('cascade');
+            $table->enum('type', ['entree', 'sortie']);
+            $table->integer('quantite');
+            $table->foreignId('user_id')->constrained('users');
+            $table->string('motif');
+            $table->timestamps();
+        });
+   
+
+        Schema::create('inventaires', function (Blueprint $table) {
+            $table->id();
+            $table->date('date_inventaire');
+            $table->foreignId('produit_id')->constrained('produits');
+            $table->integer('quantite_theorique');
+            $table->integer('quantite_physique');
+            $table->decimal('valeur_manquant', 10, 2);
+            $table->foreignId('user_id')->constrained('users');
+            $table->text('commentaire')->nullable();
+            $table->timestamps();
+        });
+  
+
+        Schema::create('product_groups', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
+        });
+    }
+
+ 
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('type');
+            $table->decimal('price', 10, 2);
+            $table->foreignId('product_group_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
+        });
+    }
+
+  
+
+        Schema::create('missing_calculations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('product_group_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->date('date');
+            $table->string('title');
+            $table->enum('status', ['open', 'closed'])->default('open');
+            $table->decimal('total_amount', 15, 2)->default(0);
+            $table->timestamps();
+        });
+    }
+
+
+        Schema::create('missing_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('missing_calculation_id')->constrained()->onDelete('cascade');
+            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->integer('expected_quantity');
+            $table->integer('actual_quantity');
+            $table->integer('missing_quantity');
+            $table->decimal('amount', 15, 2);
+            $table->timestamps();
+        });
+  
+
+        Schema::create('cash_distributions', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id'); // Vendeuse
+            $table->date('date');
+            $table->decimal('bill_amount', 15, 2); // Montant en billets
+            $table->decimal('initial_coin_amount', 15, 2); // Montant initial en monnaie
+            $table->decimal('final_coin_amount', 15, 2)->nullable(); // Montant final en monnaie déclaré
+            $table->decimal('deposited_amount', 15, 2)->nullable(); // Montant versé
+            $table->decimal('sales_amount', 15, 2)->default(0); // Montant des ventes
+            $table->decimal('missing_amount', 15, 2)->nullable(); // Montant manquant calculé
+            $table->enum('status', ['en_cours', 'cloture'])->default('en_cours');
+            $table->text('notes')->nullable();
+            $table->unsignedBigInteger('closed_by')->nullable(); // Admin qui a clôturé
+            $table->timestamp('closed_at')->nullable();
+            $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('closed_by')->references('id')->on('users')->onDelete('set null');
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('cash_distributions');
+    }
+};

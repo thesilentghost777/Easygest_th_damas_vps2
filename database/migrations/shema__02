@@ -1,0 +1,371 @@
+
+Schema::create('loan_requests', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->bigInteger('amount');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->text('notes')->nullable();
+            $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
+
+        Schema::create('loan_repayments', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->bigInteger('amount');
+            $table->text('notes')->nullable();
+            $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
+
+
+        Schema::create('factures_complexe', function (Blueprint $table) {
+            $table->id();
+            $table->string('reference')->unique();
+            $table->unsignedBigInteger('producteur_id');
+            $table->foreign('producteur_id')->references('id')->on('users');
+            $table->string('id_lot')->nullable();
+            $table->decimal('montant_total', 10, 2);
+            $table->string('statut')->default('en_attente'); // en_attente, validee, annulee
+            $table->date('date_creation');
+            $table->date('date_validation')->nullable();
+            $table->text('notes')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('facture_complexe_details', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('facture_id');
+            $table->foreign('facture_id')->references('id')->on('factures_complexe')->onDelete('cascade');
+            $table->unsignedBigInteger('matiere_id');
+            $table->foreign('matiere_id')->references('id')->on('Matiere');
+            $table->decimal('quantite', 10, 3);
+            $table->string('unite');
+            $table->decimal('prix_unitaire', 10, 2);
+            $table->decimal('montant', 10, 2);
+            $table->timestamps();
+        });
+
+        Schema::create('matiere_complexe', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('matiere_id');
+            $table->decimal('prix_complexe', 10, 2)->nullable(); // prix d'une unité dans le complexe
+            $table->timestamps();
+
+            $table->foreign('matiere_id')->references('id')->on('Matiere')->onDelete('cascade');
+        });
+   
+        Schema::create('recipe_categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('description')->nullable();
+            $table->timestamps();
+        });
+  
+
+        Schema::create('recipes', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->integer('preparation_time')->nullable(); // in minutes
+            $table->integer('cooking_time')->nullable(); // in minutes
+            $table->integer('rest_time')->nullable(); // in minutes
+            $table->integer('yield_quantity')->nullable(); // how many items this recipe produces
+            $table->string('difficulty_level')->nullable(); // e.g. easy, medium, hard
+            $table->foreignId('category_id')->nullable()->constrained('recipe_categories')->onDelete('set null');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // who created this recipe
+            $table->boolean('active')->default(true);
+            $table->timestamps();
+        });
+    }
+
+   
+
+        Schema::create('ingredients', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('unit')->nullable(); // e.g. g, kg, ml, l, cup, tbsp, etc.
+            $table->timestamps();
+        });
+    }
+
+    Schema::create('recipe_ingredients', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('recipe_id')->constrained()->onDelete('cascade');
+            $table->foreignId('ingredient_id')->constrained()->onDelete('cascade');
+            $table->decimal('quantity', 10, 2);
+            $table->string('unit')->nullable();
+            $table->text('notes')->nullable();
+            $table->integer('order')->default(0);
+            $table->timestamps();
+        });
+    }
+
+    Schema::create('recipe_steps', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('recipe_id')->constrained()->onDelete('cascade');
+            $table->integer('step_number');
+            $table->text('instruction');
+            $table->text('tips')->nullable();
+            $table->integer('time_required')->nullable(); // in minutes
+            $table->timestamps();
+        });
+    }
+
+    Schema::create('rations', function (Blueprint $table) {
+            $table->id();
+            $table->decimal('montant_defaut', 10, 2)->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create('employee_rations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('employee_id')->constrained('users')->onDelete('cascade');
+            $table->decimal('montant', 10, 2);
+            $table->boolean('personnalise')->default(false);
+            $table->timestamps();
+        });
+
+        Schema::create('ration_claims', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('employee_id')->constrained('users')->onDelete('cascade');
+            $table->date('date_reclamation');
+            $table->decimal('montant', 10, 2);
+            $table->dateTime('heure_reclamation');
+            $table->unique(['employee_id', 'date_reclamation']);
+            $table->timestamps();
+        });
+   
+        Schema::create('type_taules', function (Blueprint $table) {
+            $table->id();
+            $table->string('nom');
+            $table->text('description')->nullable();
+            $table->string('formule_farine')->nullable();
+            $table->string('formule_eau')->nullable();
+            $table->string('formule_huile')->nullable();
+            $table->string('formule_autres')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('taules_inutilisees', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('producteur_id')->constrained('users');
+            $table->foreignId('type_taule_id')->constrained('type_taules');
+            $table->integer('nombre_taules');
+            $table->foreignId('matiere_creee_id')->nullable()->constrained('Matiere');
+            $table->boolean('recuperee')->default(false);
+            $table->foreignId('recuperee_par')->nullable()->constrained('users');
+            $table->dateTime('date_recuperation')->nullable();
+            $table->timestamps();
+        });
+   
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->morphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
+        });
+   
+        Schema::create('histories', function (Blueprint $table) {
+            $table->id();
+            $table->text('description');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->string('action_type')->nullable();
+            $table->string('ip_address')->nullable();
+            $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+  
+            Schema::create('personal_access_tokens', function (Blueprint $table) {
+            $table->id();
+            $table->morphs('tokenable');
+            $table->string('name');
+            $table->string('token', 64)->unique();
+            $table->text('abilities')->nullable();
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamps();
+        });
+  
+        Schema::create('user_pins', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('pin_code', 100);
+            $table->boolean('flag')->default(false);
+            $table->timestamps();
+        });
+  
+        Schema::create('first_config_employee', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->boolean('status')->default(false);
+            $table->timestamps();
+        });
+    }
+
+ 
+ 
+    Schema::create('objectives', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id'); // ID de l'utilisateur (DG ou CP)
+            $table->string('title'); // Titre de l'objectif
+            $table->text('description')->nullable(); // Description optionnelle
+            $table->decimal('target_amount', 15, 2); // Montant cible
+            $table->enum('period_type', ['daily', 'weekly', 'monthly', 'yearly']); // Type de période
+            $table->date('start_date'); // Date de début
+            $table->date('end_date'); // Date de fin
+            $table->enum('sector', ['alimentation', 'boulangerie-patisserie', 'glace', 'global']); // Secteur concerné
+            $table->enum('goal_type', ['revenue', 'profit']); // Type d'objectif (CA ou bénéfice)
+            $table->json('expense_categories')->nullable(); // Catégories de dépenses associées (plusieurs possibles)
+            $table->boolean('use_standard_sources')->default(true); // Utiliser les sources standard ou personnalisées
+            $table->json('custom_users')->nullable(); // IDs des utilisateurs personnalisés pour sources
+            $table->json('custom_categories')->nullable(); // IDs des catégories de transactions entrantes personnalisées
+            $table->boolean('is_active')->default(true); // Actif ou non
+            $table->boolean('is_achieved')->default(false); // Atteint ou non
+            $table->boolean('is_confirmed')->default(false); // Confirmé ou non
+            $table->timestamps();
+            
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
+        
+        Schema::create('objective_progress', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('objective_id');
+            $table->date('date');
+            $table->decimal('current_amount', 15, 2); // Montant actuel
+            $table->decimal('expenses', 15, 2)->default(0); // Dépenses
+            $table->decimal('profit', 15, 2)->default(0); // Bénéfices
+            $table->decimal('progress_percentage', 5, 2); // Pourcentage de progression
+            $table->json('transactions')->nullable(); // Liste des transactions/versements liés (IDs)
+            $table->timestamps();
+            
+            $table->foreign('objective_id')->references('id')->on('objectives')->onDelete('cascade');
+        });
+        
+        // Table pour les sous-objectifs par produit
+        Schema::create('sub_objectives', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('objective_id'); // Objectif parent
+            $table->unsignedBigInteger('product_id')->nullable(); // ID du produit (Produit_fixes)
+            $table->string('title'); // Titre du sous-objectif
+            $table->decimal('target_amount', 15, 2); // Montant cible du sous-objectif
+            $table->decimal('current_amount', 15, 2)->default(0); // Montant actuel
+            $table->decimal('progress_percentage', 5, 2)->default(0); // Pourcentage de progression
+            $table->timestamps();
+            
+            $table->foreign('objective_id')->references('id')->on('objectives')->onDelete('cascade');
+            // Pas de contrainte sur product_id car pourrait être NULL pour des sous-objectifs génériques
+        });
+ 
+
+        Schema::table('produits_recu_1', function (Blueprint $table) {
+            $table->unsignedBigInteger('vendeur_id')->nullable()->after('pointeur_id');
+            $table->foreign('vendeur_id')->references('id')->on('users');
+        });
+ 
+
+        Schema::table('produits_recu_1', function (Blueprint $table) {
+            $table->dropForeign(['vendeur_id']);
+            $table->dropColumn('vendeur_id');
+        });
+  
+
+        Schema::create('produits_recu_vendeur', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('produit_recu_id');
+            $table->unsignedBigInteger('vendeur_id');
+            $table->integer('quantite_recue');
+            $table->integer('quantite_confirmee')->nullable();
+            $table->enum('status', ['en_attente', 'confirmé', 'rejeté'])->default('en_attente');
+            $table->text('remarques')->nullable();
+            $table->timestamps();
+            
+            $table->foreign('produit_recu_id')->references('id')->on('produits_recu_1')->onDelete('cascade');
+            $table->foreign('vendeur_id')->references('id')->on('users')->onDelete('cascade');
+        });
+ 
+
+        Schema::create('rapport_configs', function (Blueprint $table) {
+            $table->id();
+            $table->json('production_categories')->nullable(); // Catégories de dépenses pour le secteur production
+            $table->json('alimentation_categories')->nullable(); // Catégories de dépenses pour le secteur alimentation
+            $table->json('production_users')->nullable(); // Utilisateurs dont les versements constituent les gains pour production
+            $table->json('alimentation_users')->nullable(); // Utilisateurs dont les versements constituent les gains pour alimentation
+            $table->json('social_climat')->nullable(); // Informations sur le climat social
+            $table->json('major_problems')->nullable(); // Problèmes majeurs rencontrés
+            $table->json('recommendations')->nullable(); // Recommandations des employés ou clients
+            $table->decimal('tax_rate', 5, 2)->default(0); // Taux d'imposition
+            $table->decimal('vat_rate', 5, 2)->default(18); // Taux de TVA (18% par défaut)
+            
+            // Modules d'analyse à activer pour Sherlock
+            $table->boolean('analyze_product_performance')->default(true); // Analyser les performances des produits
+            $table->boolean('analyze_waste')->default(true); // Analyser le gaspillage
+            $table->boolean('analyze_sales_discrepancies')->default(true); // Analyser les écarts de vente
+            $table->boolean('analyze_employee_performance')->default(true); // Analyser les performances des employés
+            $table->boolean('analyze_theft_detection')->default(true); // Analyser les détections de vol
+            $table->boolean('analyze_material_usage')->default(true); // Analyser l'utilisation des matières premières
+            $table->boolean('analyze_spoilage')->default(true); // Analyser les avaries
+            $table->boolean('analyze_objectives')->default(true); // Analyser les objectifs
+            $table->boolean('analyze_hr_data')->default(true); // Analyser les données RH
+            $table->boolean('analyze_orders')->default(true); // Analyser les commandes
+            $table->boolean('analyze_market_trends')->default(true); // Analyser les tendances du marché
+            $table->boolean('analyze_event_impact')->default(true); // Analyser l'impact des événements
+            $table->boolean('analyze_ice_cream_sector')->default(true); // Analyser le secteur des glaces
+            
+            $table->timestamps();
+   
+            Schema::table('Matiere', function (Blueprint $table) {
+            $table->decimal('quantite_seuil', 10, 2)->default(0)->after('quantite');
+            $table->boolean('notification_active')->default(true)->after('quantite_seuil');
+        });
+  
+
+        Schema::create('payday_configs', function (Blueprint $table) {
+            $table->id();
+            $table->integer('salary_day')->comment('Jour du mois pour les salaires')->default(25);
+            $table->integer('advance_day')->comment('Jour du mois pour les avances sur salaires')->default(15);
+            $table->timestamps();
+        });
+     
+        Schema::table('notifications', function (Blueprint $table) {
+            $table->boolean('processed')->default(false)->after('read_at');
+            $table->timestamp('renew_at')->nullable()->after('processed');
+            $table->integer('renew_days')->nullable()->after('renew_at');
+        });
+    }
+
+    public function down()
+    {
+        Schema::table('notifications', function (Blueprint $table) {
+            $table->dropColumn('processed');
+            $table->dropColumn('renew_at');
+            $table->dropColumn('renew_days');
+        });
+  
+
+        Schema::create('admin_stats', function (Blueprint $table) {
+            $table->id();
+            $table->date('date')->index();
+            $table->integer('connection_count')->default(0);
+            $table->integer('request_count')->default(0);
+            $table->integer('average_response_time')->default(0); // en millisecondes
+            $table->integer('error_count')->default(0);
+            $table->timestamps();
+  
+
+        Schema::create('listener_logs', function (Blueprint $table) {
+            $table->id();
+            $table->string('listener_name');
+            $table->enum('status', ['success', 'failed', 'skipped']);
+            $table->text('message');
+            $table->json('details')->nullable();
+            $table->datetime('executed_at');
+            $table->float('execution_time')->nullable(); // en secondes
+            $table->timestamps();
+            
+            $table->index(['listener_name', 'executed_at']);
+   

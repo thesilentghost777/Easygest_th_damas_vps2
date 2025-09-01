@@ -1,0 +1,54 @@
+# Laravel specific
+/vendor
+/node_modules
+/public/storage
+/storage/*.key
+/.idea
+/.vscode
+Homestead.yaml
+Homestead.json
+
+# Environment file
+.env
+.env.backup
+.env.local
+.env.*.backup
+
+# Laravel log files
+/storage/logs/*.log
+
+# Cache and compiled files
+/bootstrap/cache/*.php
+
+# Composer PHAR
+composer.phar
+
+# NPM / Yarn logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE files
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# PHPUnit result cache
+.phpunit.result.cache
+
+# Ignore IDE helper files
+_ide_helper.php
+_ide_helper_models.php
+
+# Ignore compiled view files
+/storage/framework/views/*.php
+
+# Ignore Mix manifest file if you want (optional)
+/public/mix-manifest.json
+/public/hot
+vite.config.js
+API_KEYS/
+.env
