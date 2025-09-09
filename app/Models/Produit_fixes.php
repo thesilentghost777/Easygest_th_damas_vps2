@@ -34,9 +34,9 @@ class Produit_fixes extends Model
         return $this->hasMany(Production::class, 'produit', 'code_produit');
     }
 
-    public function receptions(): HasMany
+    public function receptions()
     {
-        return $this->hasMany(ProduitRecu::class, 'produit_id', 'code_produit');
+        return $this->hasMany(ReceptionProduction::class, 'code_produit', 'code_produit');
     }
 
     public function ventes(): HasMany

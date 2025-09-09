@@ -112,7 +112,7 @@ use App\Http\Controllers\CalculVentesController;
 use App\Http\Controllers\Avarie2Controller;
 use App\Http\Controllers\DepenseValidationController;
 use App\Http\Controllers\BoulangerieController;
-
+use App\Http\Controllers\ReceptionProductionController;
 require __DIR__.'/auth.php';
 require __DIR__.'/api.php';
 
@@ -434,6 +434,9 @@ Route::middleware(['auth', 'track_satistic'])->group(function () {
     Route::post('/calculer', [CalculVentesController::class, 'calculer'])->name('calculer');
     Route::get('/resultats/{mois}/{annee}', [CalculVentesController::class, 'resultats'])->name('resultats');
 });
+
+    Route::resource('reception', ReceptionProductionController::class);
+
 
 	Route::get('/valider-as', [SalaireController::class, 'validerAs'])->name('valider-as');
         Route::post('/store-validation', [SalaireController::class, 'store_validation'])->name('store-validation');

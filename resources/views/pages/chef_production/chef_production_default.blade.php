@@ -51,6 +51,13 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('reception.index') }}" class="menu-link flex items-center px-4 py-2.5 text-base rounded-lg hover:bg-white/10 transition-colors relative">
+                            <i class="menu-icon mdi mdi-book-open-page-variant mr-3 text-lg"></i>
+                            <span>{{ $isFrench ? 'Cahier de madame willy' : 'willy\'s Ledger' }}</span>
+                        </a>
+                    </li>
+                    
+                    <li>
                         <a href="{{ route('assignations.resume-quantites') }}" class="menu-link flex items-center px-3 py-2.5 text-base rounded-lg hover:bg-white/10 transition-colors">
                             <i class="menu-icon mdi mdi-clipboard-text mr-3 text-lg"></i>
                             <span>{{ $isFrench ? 'Résumé des assignations' : 'Assignment Summary' }}</span>

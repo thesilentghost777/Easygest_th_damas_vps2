@@ -26,20 +26,23 @@ class ManquantFluxController extends Controller
     }
 
     public function calculerFluxJournalier(Request $request)
-    {
-        $date = $request->date ?? Carbon::today()->toDateString();
-        
-        // Récupérer tous les produits ayant une activité à cette date
-        $produits = $this->getProduitsAvecActivite($date);
-
-        foreach ($produits as $produitId) {
-            $this->calculerFluxProduit($produitId, $date);
-            $this->calculerManquantsProduit($produitId, $date);
-        }
-
-        return redirect()->route('manquant-flux.index')
-            ->with('success', "Flux et manquants calculés pour le $date");
+{
+    $date = $request->date ?? Carbon::today()->toDateString();
+    
+    // Vider toute la table flux_journaliers avant de recalculer
+    DB::table('flux_journaliers')->truncate();
+    
+    // Récupérer tous les produits ayant une activité à cette date
+    $produits = $this->getProduitsAvecActivite($date);
+    
+    foreach ($produits as $produitId) {
+        $this->calculerFluxProduit($produitId, $date);
+        $this->calculerManquantsProduit($produitId, $date);
     }
+    
+    return redirect()->route('manquant-flux.index')
+        ->with('success', "Flux et manquants calculés pour le $date");
+}
 
     private function getProduitsAvecActivite($date)
     {
